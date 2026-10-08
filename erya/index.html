@@ -1,0 +1,412 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+
+<title>Erya Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@600;700&display=swap">
+<style>
+/* 布局概念：经营底稿。左侧窄栏标注层级与编号，右侧是正文，像一本按层装订、可以逐页核对的工作底稿。 */
+:root{
+  --bg:#F0EEE7;
+  --surface:#FBFAF6;
+  --ink:#1C2024;
+  --ink-soft:#5B5F63;
+  --ink-faint:#8B8E90;
+  --accent:#A6672A;
+  --accent-ink:#7C4C1E;
+  --accent-soft:#E4D3BC;
+  --line:#D7D2C4;
+  --line-strong:#B9B2A0;
+  --good:#4B7A54;
+  --critical:#A5453B;
+  --font-display:"Source Serif 4","Noto Serif SC",Georgia,"Songti SC",serif;
+  --font-body:"Public Sans",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181B;--surface:#1D1F23;--ink:#ECE9E2;--ink-soft:#A6A9AC;--ink-faint:#74777A;
+    --accent:#DA9A52;--accent-ink:#F0B978;--accent-soft:#3A3226;--line:#33363B;--line-strong:#45484D;
+    --good:#7CAE85;--critical:#D18178;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181B;--surface:#1D1F23;--ink:#ECE9E2;--ink-soft:#A6A9AC;--ink-faint:#74777A;
+  --accent:#DA9A52;--accent-ink:#F0B978;--accent-soft:#3A3226;--line:#33363B;--line-strong:#45484D;
+  --good:#7CAE85;--critical:#D18178;color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;margin:0;color:var(--ink);text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:28px}
+@media (max-width:640px){.wrap{padding-inline:18px}}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:18px;height:1px;background:var(--accent)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* 顶栏 */
+.topbar{background:var(--bg);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.brand{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--ink);text-decoration:none;white-space:nowrap}
+.brand{display:inline-flex;align-items:center;gap:10px}
+.brand-mark{width:22px;height:22px;flex:none}
+.byline{font-size:14px;color:var(--ink-soft);white-space:nowrap}
+
+/* Hero */
+.hero{padding-block:84px 72px;border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:56px;align-items:end}
+.hero-grid>*{min-width:0}
+.hero h1{font-size:clamp(40px,7vw,76px);line-height:1.05;letter-spacing:-.01em;margin:22px 0 26px}
+.hero-sub{font-size:18px;color:var(--ink-soft);max-width:36em}
+.hero-sub strong{color:var(--ink);font-weight:600}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;font-size:15px;font-weight:500;text-decoration:none;border:1px solid var(--ink);border-radius:2px}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-ghost{color:var(--ink)}
+.btn:hover{border-color:var(--accent);}
+.btn-ico{width:1.15em;height:1.15em;flex:none}
+.btn-primary:hover{background:var(--accent-ink);color:var(--surface)}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr;gap:40px}.hero{padding-block:56px 48px}}
+
+.curve-card{background:var(--surface);border:1px solid var(--line);padding:22px 22px 18px}
+.curve-card .label{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.curve-card h3{font-size:19px;margin:6px 0 10px}
+.curve-card svg{display:block;width:100%;height:auto}
+.curve-card .note{font-size:13px;color:var(--ink-faint);margin-top:8px;line-height:1.55}
+
+/* 通用分区 */
+section.part{padding-block:88px;border-bottom:1px solid var(--line)}
+.part-head{display:grid;grid-template-columns:200px 1fr;gap:40px;margin-bottom:48px}
+.part-head>*{min-width:0}
+.part-tag{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding-top:10px}
+.part-tag b{display:block;font-weight:500;color:var(--accent-ink);font-size:13px;margin-bottom:4px}
+.part-head h2{font-size:clamp(28px,4vw,40px);line-height:1.2}
+.manifesto{font-family:var(--font-display);font-weight:700;font-size:clamp(21px,2.5vw,26px);line-height:1.75;color:var(--ink);max-width:38em;padding-top:4px}
+.manifesto *{font:inherit;color:inherit;background:none;padding:0}
+.manifesto .qm{font-family:"Noto Serif SC","Songti SC",serif}
+.part-head .lede+.lede{margin-top:12px}
+.part-head .lede{margin-top:16px;color:var(--ink-soft);font-size:17px;max-width:38em}
+@media (max-width:760px){.part-head{grid-template-columns:1fr;gap:12px}.part-tag{padding-top:0}section.part{padding-block:60px}}
+
+/* Part 1：五个问题 */
+.questions{border-top:1px solid var(--ink)}
+.q{display:grid;grid-template-columns:200px 1fr;gap:40px;padding-block:26px;border-bottom:1px solid var(--line)}
+.q>*{min-width:0}
+.q .who{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--ink-faint);padding-top:6px}
+.q h3{font-size:22px;margin-bottom:8px}
+.q p{color:var(--ink-soft);max-width:40em}
+@media (max-width:760px){.q{grid-template-columns:1fr;gap:6px}}
+
+.diff{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:56px}
+.diff>div{background:var(--surface);padding:26px 24px;min-width:0}
+.diff h3{font-size:19px;margin-bottom:10px}
+.diff p{font-size:15px;color:var(--ink-soft)}
+@media (max-width:860px){.diff{grid-template-columns:1fr}}
+
+.case{margin-top:56px;display:grid;grid-template-columns:200px 1fr;gap:40px}
+.case>*{min-width:0}
+.case .who{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase;padding-top:6px}
+.figs{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.fig{border-top:2px solid var(--accent);padding-top:14px;min-width:0}
+.fig .v{font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1.15}
+.fig .k{font-size:14px;color:var(--ink-soft);margin-top:6px}
+.case .src{grid-column:2;font-size:13px;color:var(--ink-faint)}
+@media (max-width:760px){.case{grid-template-columns:1fr;gap:14px}.figs{grid-template-columns:1fr;gap:20px}.case .src{grid-column:1}}
+
+/* Part 2：底座 */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:40px;font-family:var(--font-mono);font-size:13px;color:var(--ink-soft)}
+.flow span{padding:6px 12px;border:1px solid var(--line-strong);background:var(--surface)}
+.flow i{font-style:normal;color:var(--accent)}
+.layer{display:grid;grid-template-columns:200px 1fr;gap:40px;padding-block:30px;border-top:1px solid var(--line)}
+.layer>*{min-width:0}
+.layer:first-of-type{border-top:1px solid var(--ink)}
+.layer-name{font-family:var(--font-display);font-size:21px;font-weight:600}
+.layer-desc{font-size:14px;color:var(--ink-soft);margin-top:6px}
+.models{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.models.two{grid-template-columns:repeat(2,1fr)}
+.model{background:var(--surface);padding:18px 20px;display:grid;grid-template-columns:44px 1fr;gap:6px 12px;min-width:0}
+.model .code{font-family:var(--font-mono);font-size:12.5px;color:var(--accent-ink);padding-top:3px}
+.model h3{font-family:var(--font-body);font-size:16px;font-weight:600}
+.model p{grid-column:2;font-size:14.5px;color:var(--ink-soft);line-height:1.6}
+.layer.research{margin-top:28px;border-top:1px dashed var(--line-strong)}
+.part-head .models-claim{margin-top:14px;padding-left:16px;border-left:3px solid var(--accent);font-family:var(--font-display);font-size:clamp(19px,2.2vw,22px);font-weight:600;line-height:1.45;color:var(--ink)}
+@media (max-width:960px){.models{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.layer{grid-template-columns:1fr;gap:14px}.models,.models.two{grid-template-columns:1fr}}
+
+/* Part 3：AI */
+.ai-list{border-top:1px solid var(--ink)}
+.ai-item{display:grid;grid-template-columns:1fr auto;gap:6px 24px;padding-block:22px;border-bottom:1px solid var(--line)}
+.ai-item>*{min-width:0}
+.ai-item h3{font-family:var(--font-body);font-size:19px;font-weight:600}
+.ai-item p{grid-column:1;color:var(--ink-soft);font-size:15.5px;max-width:44em}
+.chip{grid-column:2;grid-row:1;align-self:center;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;padding:3px 10px;border:1px solid currentColor;white-space:nowrap}
+.chip.run{color:var(--accent-ink)}
+.chip.plan{color:var(--ink-faint);border-style:dashed}
+.chip.side{color:var(--ink-soft);border-color:var(--line-strong)}
+.stack{margin-top:40px;background:var(--surface);border:1px solid var(--line);padding:24px 26px}
+.stack-title{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:14px}
+.stack dl{margin:0;display:flex;flex-direction:column}
+.stack .row{display:grid;grid-template-columns:120px 1fr;gap:16px;padding-block:12px;border-top:1px solid var(--line)}
+.stack .row>*{min-width:0}
+.stack dt{font-size:14px;font-weight:600;color:var(--ink);padding-top:4px}
+.stack dd{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.stack dd span{font-family:var(--font-mono);font-size:13px;padding:4px 10px;border:1px solid var(--line-strong);color:var(--ink)}
+.stack dd em{font-style:normal;font-size:14px;color:var(--ink-soft)}
+@media (max-width:560px){.stack{padding:20px 18px}.stack .row{grid-template-columns:1fr;gap:8px}}
+
+/* 联系 */
+.contact{padding-block:88px}
+.contact-box{background:transparent;color:var(--ink);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);padding:48px 44px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:end}
+.contact-box>*{min-width:0}
+.contact-box h2{color:var(--ink);font-size:clamp(26px,3.6vw,36px);line-height:1.25}
+.contact-box p{color:var(--ink-soft);margin-top:14px;max-width:30em}
+.mail{display:flex;flex-direction:column;gap:12px}
+.mail .addr{font-family:var(--font-mono);font-size:16px;color:var(--ink);user-select:all;word-break:break-all}
+.copy{align-self:flex-start;font:inherit;font-size:14px;padding:10px 18px;background:transparent;color:var(--accent-ink);border:1px solid var(--accent);border-radius:2px;cursor:pointer}
+.copy:hover{background:var(--accent);color:var(--surface)}
+.chat-cta{color:var(--ink);font-weight:600;white-space:nowrap}
+.chat-ico{width:1.15em;height:1.15em;margin-left:6px;vertical-align:-.2em;color:var(--accent)}
+@media (max-width:760px){.contact-box{grid-template-columns:1fr;padding:32px 24px}.contact{padding-block:56px}}
+
+footer{padding-block:28px 48px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-faint)}
+footer .wrap{display:flex;flex-direction:column;gap:6px}
+</style>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="4" fill="#A6672A"/><path d="M6 15.5 L10 12.5 L13 14 L18 8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Erya Consulting</a>
+    <span class="byline">Daxiang | 战略财务顾问</span>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">战略财务顾问</span>
+        <h1>先把数看清，<br>再把判断做对。</h1>
+        <p class="hero-sub">我是 <strong>Erya Consulting 首席顾问</strong>，为成长期的 CEO 提供战略财务顾问服务：经营分析，以及长期战略支持。</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#contact">欢迎聊聊<svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20.5l1.5-4.6A8 8 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" stroke-width="2.6"/></svg></a>
+          <a class="btn btn-ghost" href="#models">看 16 个模型</a>
+        </div>
+      </div>
+      <figure class="curve-card" style="margin:0">
+        <div class="label">底稿样页 · 现金回正曲线</div>
+        <h3>一款爆品，第几个月把钱收回来</h3>
+        <svg viewBox="0 0 360 196" role="img" aria-label="累计现金净流入曲线：上市前两个月为负，第三个月回正，此后持续上升">
+          <line x1="28" y1="138.5" x2="344" y2="138.5" stroke="var(--line-strong)" stroke-width="1" fill="none"/>
+          <line x1="28" y1="20" x2="344" y2="20" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4" fill="none"/>
+          <line x1="28" y1="79" x2="344" y2="79" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4" fill="none"/>
+          <text x="22" y="142" text-anchor="end" font-size="11" font-family="IBM Plex Mono, monospace" fill="var(--ink-faint)">0</text>
+          <polygon points="40,138.5 40,146.6 96,148.9 108.4,138.5" fill="var(--critical)" fill-opacity=".18"/>
+          <polygon points="108.4,138.5 152,102 208,76.1 264,43.5 320,28.9 320,138.5" fill="var(--accent)" fill-opacity=".16"/>
+          <polyline points="40,146.6 96,148.9 152,102 208,76.1 264,43.5 320,28.9" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+          <circle cx="108.4" cy="138.5" r="4.5" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>
+          <text x="114" y="128" font-size="12" font-family="Public Sans, sans-serif" fill="var(--ink)">回正</text>
+          <circle cx="320" cy="28.9" r="4.5" fill="var(--accent)"/>
+          <g font-size="11" font-family="IBM Plex Mono, monospace" fill="var(--ink-faint)" text-anchor="middle">
+            <text x="40" y="176">M1</text><text x="96" y="176">M2</text><text x="152" y="176">M3</text>
+            <text x="208" y="176">M4</text><text x="264" y="176">M5</text><text x="320" y="176">M6</text>
+          </g>
+        </svg>
+        <figcaption class="note">累计现金净流入，按上市后月份。客户数据已脱敏，只保留比例。这款产品约 70 天回正。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="part" id="why">
+    <div class="wrap">
+      <div class="part-head">
+        <div class="part-tag"><b>为什么</b>成长期的 CEO</div>
+        <div>
+          <p class="manifesto"><span class="qm">“</span><span class="dim">当下是一个内外部环境错综复杂的市场，对于成长期的CEO来说，</span><mark>往往会有很多前瞻性的安排，阶段性内部没有合适的人推进</mark>，<span class="dim">这时候你需要一位</span><b>有战略能力</b>，<span class="dim">同时</span><b>具备多个能力模块</b>、<b>能提供多维度视角</b><span class="dim">的</span><strong>战略伙伴</strong>。<span class="qm">”</span></p>
+        </div>
+      </div>
+      <div class="diff" style="margin-top:0">
+        <div><h3>战略能力</h3><p>从当下的经营数字出发，推到三年后的方向。</p></div>
+        <div><h3>多个能力模块</h3><p>经营分析、财务模型、行业研究、AI 工具，一个人覆盖。</p></div>
+        <div><h3>多维度视角</h3><p>做过市场营销和科技创投，现在驻场陪企业经营。同一件事，能从行业趋势、品牌、资本和经营多个角度看。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 1 -->
+  <section class="part" id="value">
+    <div class="wrap">
+      <div class="part-head">
+        <div class="part-tag"><b>Part 1</b>你得到什么</div>
+        <div>
+          <h2>你需要一份算对了的数，和一个敢下的判断</h2>
+          <p class="lede">成长期的 CEO 每周都在做决定：这个新品要不要再补一批货，那个渠道还值不值得投，团队今年的预算花得对不对。大多数时候，这些决定靠的是感觉，因为手里的数字口径对不上，算出来的结果也互相打架。我做的事情是坐到你身边，回答五个问题。</p>
+        </div>
+      </div>
+
+      <div class="questions">
+        <div class="q"><div class="who">经营分析</div><div><h3>我们到底赚没赚钱？</h3><p>先把账对上。收入、成本、平台扣费，一条口径算到底，平台结算对到个位数。</p></div></div>
+        <div class="q"><div class="who">经营分析</div><div><h3>钱卡在哪了？</h3><p>用现金看经营。每个产品投进去的钱多久回来，哪个在造血，哪个在占压，一目了然。</p></div></div>
+        <div class="q"><div class="who">经营分析</div><div><h3>哪个产品该加码，哪个该停？</h3><p>每个 SKU 有一个明确的状态，对应一个明确的动作。</p></div></div>
+        <div class="q"><div class="who">经营分析</div><div><h3>团队花的钱值不值？</h3><p>费用追到部门，预算规则跟着产品结构一起调整。</p></div></div>
+        <div class="q"><div class="who">长期战略支持</div><div><h3>下一步往哪走？</h3><p>从你自己的数字出发，判断增长靠什么，新品类该不该进。</p></div></div>
+      </div>
+
+      <div class="diff">
+        <div><h3>用现金看经营</h3><p>成长期最怕现金断。现金毛利率和回正周期，让你看到账面利润看不到的东西。</p></div>
+        <div><h3>数字直通动作</h3><p>每份分析的终点是一个判定：该清库存、该核合同、该控补货。你拿到的是可以直接执行的结论。</p></div>
+        <div><h3>跟着业务一起长</h3><p>新品上市、渠道变化，模型和规则每期跟着调。这五个问题每个月都在变，所以这件事要持续做。</p></div>
+      </div>
+
+      <div class="case">
+        <div class="who">案例 · 消费电子出海品牌</div>
+        <div class="figs">
+          <div class="fig"><div class="v tnum">约一半</div><div class="k">主营业务现金亏损，年化后同比收窄</div></div>
+          <div class="fig"><div class="v tnum">−11 pct</div><div class="k">制造成本占销售额比例，同比下降约 11 个百分点</div></div>
+          <div class="fig"><div class="v tnum">+7 pct</div><div class="k">现金毛利率，同比提升约 7 个百分点</div></div>
+        </div>
+        <p class="src">数字来自客户经营报告内的同期对比，客户信息已匿名处理。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 2 -->
+  <section class="part" id="models">
+    <div class="wrap">
+      <div class="part-head">
+        <div class="part-tag"><b>Part 2</b>经营数据底座</div>
+        <div>
+          <h2>一套底座，16 个模型</h2>
+          <p class="lede">这些模型都从真实项目里长出来。前 14 个组成经营数据底座，每一层吃上一层的输出；最后 2 个是研究方法，用来判断新品类和新赛道。</p>
+        </div>
+      </div>
+
+      <div class="flow" aria-label="底座的四层">
+        <span>数据口径</span><i>→</i><span>经营指标</span><i>→</i><span>状态判定</span><i>→</i><span>经营决策</span>
+      </div>
+
+      <div class="layer">
+        <div><div class="layer-name">口径层</div><p class="layer-desc">定义每个数怎么归、怎么算</p></div>
+        <div class="models">
+          <div class="model"><span class="code">M01</span><h3>收入多维拆解</h3><p>每一块钱收入来自哪个市场、哪类客户、哪个产品、哪个平台。</p></div>
+          <div class="model"><span class="code">M02</span><h3>平台费率矩阵</h3><p>每个平台的佣金、广告、支付扣点，一张表看清。</p></div>
+          <div class="model"><span class="code">M03</span><h3>SKU 全成本归集</h3><p>研发、制造、推广、履约等 8 项直接成本，落到每个产品。</p></div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div><div class="layer-name">计算层</div><p class="layer-desc">把数变成可以比较的指标</p></div>
+        <div class="models">
+          <div class="model"><span class="code">M04</span><h3>现金回正周期</h3><p>一个产品投进去的钱，第几个月回来。</p></div>
+          <div class="model"><span class="code">M05</span><h3>现金毛利率</h3><p>按实际出款算的毛利，低于公司基准的产品自动标出。</p></div>
+          <div class="model"><span class="code">M06</span><h3>SKU 现金流 ROI</h3><p>算上全部直接成本，每个产品还赚不赚。</p></div>
+          <div class="model"><span class="code">M07</span><h3>平台结算平账</h3><p>从 GMV 一路算到提现，平台扣了多少，到手多少。</p></div>
+          <div class="model"><span class="code">M08</span><h3>销售集中度</h3><p>爆品占比和在售产品数量怎么变，看清是在聚焦还是过度依赖。</p></div>
+          <div class="model"><span class="code">M09</span><h3>费用率同比</h3><p>每个部门的费用率和去年比，异常项标出。</p></div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div><div class="layer-name">判定层</div><p class="layer-desc">把指标翻译成经营状态</p></div>
+        <div class="models">
+          <div class="model"><span class="code">M10</span><h3>经营状态判定</h3><p>每个产品一个状态：清库存、正常销售、制造占压、待核合同。</p></div>
+          <div class="model"><span class="code">M11</span><h3>部门预算与超支</h3><p>预算按归属收入分配，超支追到部门，规则随新品调整。</p></div>
+          <div class="model"><span class="code">M12</span><h3>结构迁移分类</h3><p>哪些产品和渠道在掉队，哪些在上升。</p></div>
+        </div>
+      </div>
+
+      <div class="layer">
+        <div><div class="layer-name">决策层</div><p class="layer-desc">回答接下来怎么做</p></div>
+        <div class="models two">
+          <div class="model"><span class="code">M13</span><h3>价格带与产品角色</h3><p>旗舰、放量、引流、配件，每个价格带承担什么任务。</p></div>
+          <div class="model"><span class="code">M14</span><h3>增长乘法模型</h3><p>把增长拆成 7 个相乘的因子，找出最短的那块板。</p></div>
+        </div>
+      </div>
+
+      <div class="layer research">
+        <div><div class="layer-name">研究方法</div><p class="layer-desc">不依赖经营数据，用于新品类和新赛道</p></div>
+        <div class="models two">
+          <div class="model"><span class="code">M15</span><h3>竞品指标矩阵</h3><p>用一组统一指标，横向对比一条赛道上的主要玩家。</p></div>
+          <div class="model"><span class="code">M16</span><h3>品类机会漏斗</h3><p>从品类地图、上市公司对标到用户需求，用排除法筛出起盘机会。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 3 -->
+  <section class="part" id="ai">
+    <div class="wrap">
+      <div class="part-head">
+        <div class="part-tag"><b>Part 3</b>AI</div>
+        <div>
+          <h2>用 AI 做咨询，也在用 AI 重做咨询</h2>
+          <p class="lede">我把自己的工作流当成第一个实验场。下面这些项目，有的已经在日常交付里跑，有的还在搭。</p>
+        </div>
+      </div>
+
+      <div class="ai-list">
+        <div class="ai-item"><h3>现金流盘点 agent</h3><span class="chip run">进行中</span><p>从原始账单直接生成管理会计报告。</p></div>
+        <div class="ai-item"><h3>Research harness agent</h3><span class="chip run">进行中</span><p>研究与内容生产的前置质控。每份研究报告都要过数据校验和多轮审阅，AI 不能一遍成稿就交付。</p></div>
+        <div class="ai-item"><h3>虚拟董事会 agent</h3><p>引入 MBB 核心方法论，对商业议题做多视角博弈推演。重大决策之前，先让几种不同的判断互相攻击一遍。</p></div>
+        <div class="ai-item"><h3>FDE 行业观察</h3><p>AI 落地企业的一线交付模式研究。</p></div>
+        <div class="ai-item"><h3>CEO 专属版 Muse</h3><span class="chip plan">规划中</span><p>一个只为 CEO 工作的专属定制化 AI agent。</p></div>
+        <div class="ai-item"><h3>AI 硬件投资内参</h3><span class="chip side">业余项目</span><p>个人业余项目</p></div>
+      </div>
+      <div class="stack" aria-label="AI 工具链">
+        <div class="stack-title">AI 工具链</div>
+        <dl>
+          <div class="row"><dt>日常工具</dt><dd><span>Claude Code</span><span>Codex</span><span>Pi agent</span><span>Paseo</span><span>WorkBuddy</span><span>Obsidian</span><span>GitHub</span><span>Cloudflare</span></dd></div>
+          <div class="row"><dt>云端部署</dt><dd><span>Oracle 云主机</span><em>常驻运行 Claude Code、Pi agent、Paseo</em></dd></div>
+          <div class="row"><dt>私有模型</dt><dd><span>faster-whisper</span><em>本机离线运行的语音转写模型</em></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <div class="contact-box">
+        <div>
+          <h2>如果你正带领一家快速成长的公司</h2>
+          <p>想找人一起把经营这件事做扎实，<span class="chat-cta">欢迎聊聊<svg class="chat-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20.5l1.5-4.6A8 8 0 0 1 3 11.5 8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" stroke-width="2.6"/></svg></span></p>
+        </div>
+        <div class="mail">
+          <span class="addr" id="mail-addr">daxiang@erya-consulting.com</span>
+          <button class="copy" id="copy-mail" type="button">复制邮箱</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>案例信息已匿名处理。© Erya Consulting</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('copy-mail');
+  var addr=document.getElementById('mail-addr');
+  function selectAddr(){
+    try{var r=document.createRange();r.selectNodeContents(addr);var s=window.getSelection();s.removeAllRanges();s.addRange(r);}catch(e){}
+  }
+  btn.addEventListener('click',function(){
+    var text=addr.textContent.trim();
+    function done(){btn.textContent='已复制';setTimeout(function(){btn.textContent='复制邮箱';},1800);}
+    function fail(){selectAddr();btn.textContent='已选中，按 Ctrl+C 复制';}
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,fail);}
+      else{fail();}
+    }catch(e){fail();}
+  });
+})();
+</script>
+
+
+
+</body></html>
