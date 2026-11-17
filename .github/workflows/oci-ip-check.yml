@@ -1,0 +1,74 @@
+name: oci-ip-check
+
+# 用仓库里已有的 OCI 凭据查实例状态与公网 IP（不需要 MFA / 控制台）
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q oci
+      - name: 查询实例状态与公网 IP
+        env:
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_REGION: us-sanjose-1
+        run: |
+          python -u - <<'PY'
+          import os, oci
+
+          cfg = {
+              "user": os.environ["OCI_USER_OCID"],
+              "fingerprint": os.environ["OCI_FINGERPRINT"],
+              "tenancy": os.environ["OCI_TENANCY_OCID"],
+              "region": os.environ.get("OCI_REGION", "us-sanjose-1"),
+              "key_content": os.environ["OCI_PRIVATE_KEY"],
+          }
+          tenancy = cfg["tenancy"]
+          compute = oci.core.ComputeClient(cfg)
+          network = oci.core.VirtualNetworkClient(cfg)
+
+          insts = oci.pagination.list_call_get_all_results(
+              compute.list_instances, compartment_id=tenancy).data
+          print(f"=== 实例数量: {len(insts)} ===")
+          for i in insts:
+              print(f"\n名称: {i.display_name}")
+              print(f"状态: {i.lifecycle_state}")
+              print(f"规格: {i.shape}  AD: {i.availability_domain}")
+              print(f"创建: {i.time_created}")
+              print(f"OCID: {i.id}")
+              try:
+                  atts = compute.list_vnic_attachments(
+                      compartment_id=tenancy, instance_id=i.id).data
+                  if not atts:
+                      print("  !! 没有 VNIC 挂载（网络可能已丢失）")
+                  for a in atts:
+                      v = compute.get_vnic(a.vnic_id).data
+                      pub = v.public_ip or "无（没有公网 IP）"
+                      print(f"  VNIC {v.display_name}: 私网={v.private_ip}  公网={pub}")
+              except Exception as e:
+                  print(f"  VNIC 查询失败: {e}")
+
+          print("\n=== 该区域所有公网 IP ===")
+          try:
+              ips = oci.pagination.list_call_get_all_results(
+                  network.list_public_ips, compartment_id=tenancy, scope="REGION").data
+              if not ips:
+                  print("  （一个都没有）")
+              for ip in ips:
+                  print(f"  {ip.ip_address}  lifetime={ip.lifetime}  "
+                        f"state={ip.lifecycle_state}  assigned={ip.assigned_entity_id}")
+          except Exception as e:
+              print(f"  查询失败: {e}")
+          PY
