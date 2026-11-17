@@ -16,24 +16,32 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -q oci
+      - run: pip install -q oci cryptography
       - name: 查询实例状态与公网 IP
         env:
           OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
           OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
-          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
           OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
           OCI_REGION: us-sanjose-1
         run: |
           python -u - <<'PY'
-          import os, oci
+          import os, hashlib, oci
+          from cryptography.hazmat.primitives import serialization
+
+          key = os.environ["OCI_PRIVATE_KEY"]
+          priv = serialization.load_pem_private_key(key.encode(), password=None)
+          der = priv.public_key().public_bytes(
+              serialization.Encoding.DER,
+              serialization.PublicFormat.SubjectPublicKeyInfo)
+          fp = ":".join(f"{b:02x}" for b in hashlib.md5(der).digest())
+          print(f"指纹(由私钥推导): {fp}")
 
           cfg = {
-              "user": os.environ["OCI_USER_OCID"],
-              "fingerprint": os.environ["OCI_FINGERPRINT"],
-              "tenancy": os.environ["OCI_TENANCY_OCID"],
-              "region": os.environ.get("OCI_REGION", "us-sanjose-1"),
-              "key_content": os.environ["OCI_PRIVATE_KEY"],
+              "user": os.environ["OCI_USER_OCID"].strip(),
+              "fingerprint": fp,
+              "tenancy": os.environ["OCI_TENANCY_OCID"].strip(),
+              "region": os.environ.get("OCI_REGION", "us-sanjose-1").strip(),
+              "key_content": key,
           }
           tenancy = cfg["tenancy"]
           compute = oci.core.ComputeClient(cfg)
