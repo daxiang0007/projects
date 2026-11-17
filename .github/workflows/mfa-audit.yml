@@ -1,7 +1,7 @@
 name: mfa-audit
 
-# 只读审计：这个 API key 是谁、有没有管理员、域里有哪些用户、MFA 状态如何
-# 不做任何修改性调用。用完可整文件删除。
+# 只读审计：这把 key 是谁、有没有管理员、域里有哪些用户、MFA 状态如何
+# 零写操作。用完可整文件删除。
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
         run: |
           python -u - <<'PY'
           import os, hashlib, traceback
-          import oci, oci.identity, oci.identity_domains, oci.pagination
+          import oci, oci.identity, oci.identity_domains
           from cryptography.hazmat.primitives import serialization
 
           key = os.environ["OCI_PRIVATE_KEY"]
@@ -36,10 +36,6 @@ jobs:
               serialization.Encoding.DER,
               serialization.PublicFormat.SubjectPublicKeyInfo)
           fp = ":".join(f"{b:02x}" for b in hashlib.md5(der).digest())
-          secret_fp = (os.environ.get("OCI_FINGERPRINT") or "").strip()
-          print("computed_fp =", fp, flush=True)
-          print("secret_fp   =", secret_fp or "(未设置)", flush=True)
-          print("fp_match    =", (fp == secret_fp) if secret_fp else "no-secret", flush=True)
 
           cfg = {
               "user": os.environ["OCI_USER_OCID"].strip(),
@@ -50,13 +46,13 @@ jobs:
           }
           tenancy = cfg["tenancy"]
           key_user_ocid = cfg["user"]
-          print("=== 1. 这把钥匙是谁 ===", flush=True)
 
+          print("=== 1. 这把钥匙是谁 ===", flush=True)
           iam = oci.identity.IdentityClient(cfg)
           me = iam.get_user(key_user_ocid).data
-          print(f"key_user_name = {me.name}", flush=True)
-          print(f"key_user_email = {me.email}", flush=True)
-          print(f"key_user_state = {me.lifecycle_state}", flush=True)
+          print("key_user_name =", me.name, flush=True)
+          print("key_user_email =", me.email, flush=True)
+          print("key_user_state =", me.lifecycle_state, flush=True)
 
           try:
               groups = oci.pagination.list_call_get_all_results(
@@ -65,49 +61,49 @@ jobs:
               mems = oci.pagination.list_call_get_all_results(
                   iam.list_user_group_memberships, compartment_id=tenancy,
                   user_id=key_user_ocid).data
-              print("key_user_iam_groups =", [gname.get(m.group_id, m.group_id)
-                                              for m in mems
-                                              if m.lifecycle_state == "ACTIVE"], flush=True)
+              print("key_user_iam_groups =",
+                    [gname.get(m.group_id, m.group_id) for m in mems
+                     if m.lifecycle_state == "ACTIVE"], flush=True)
           except Exception as e:
               print("iam group lookup failed:", type(e).__name__, e, flush=True)
 
-          print("=== 2. tenancy 里有哪些 identity domain ===", flush=True)
-          try:
-              domains = oci.pagination.list_call_get_all_results(
-                  iam.list_domains, compartment_id=tenancy).data
-          except Exception as e:
-              print("domain list failed:", type(e).__name__, e, flush=True)
-              raise SystemExit(0)
-
+          print("=== 2. identity domain ===", flush=True)
+          domains = oci.pagination.list_call_get_all_results(
+              iam.list_domains, compartment_id=tenancy).data
           for d in domains:
               print(f"domain: name={d.display_name} state={d.lifecycle_state} "
-                    f"hidden_on_login={getattr(d, 'is_hidden_on_login', None)} "
-                    f"url={getattr(d, 'url', None)}", flush=True)
+                    f"hidden_on_login={getattr(d, 'is_hidden_on_login', None)} url={d.url}", flush=True)
 
-          print("=== 3. 每个域的用户与 MFA 状态 ===", flush=True)
+          print("=== 3. 域内用户与 MFA 状态 ===", flush=True)
           for d in domains:
               if getattr(d, "is_hidden_on_login", False):
                   print(f"[{d.display_name}] 跳过（登录页不可见）", flush=True)
                   continue
               try:
                   idc = oci.identity_domains.IdentityDomainsClient(cfg, service_endpoint=d.url)
-                  raw = oci.pagination.list_call_get_all_results(idc.list_users).data
-                  users = getattr(raw, "resources", raw)
-                  print(f"[{d.display_name}] 读到了 {len(users)} 个用户 —— 这说明钥匙有域内管理权限", flush=True)
+                  users, start = [], 1
+                  while True:
+                      page = idc.list_users(count=50, start_index=start).data
+                      res = getattr(page, "resources", None) or []
+                      users.extend(res)
+                      start += len(res)
+                      if not res or start > (getattr(page, "total_results", 0) or 0):
+                          break
+                  print(f"[{d.display_name}] 读到 {len(users)} 个用户 —— 说明这把钥匙有域内管理权限", flush=True)
                   for u in users:
                       m = getattr(u, "urn_ietf_params_scim_schemas_oracle_idcs_extension_mfa_user", None)
                       emails = getattr(u, "emails", None) or []
                       email = emails[0].value if emails else None
                       bypass = getattr(m, "bypass_codes", None) or []
-                      is_key_user = (getattr(u, "ocid", None) == key_user_ocid)
-                      grps = [g.display for g in (getattr(u, "groups", None) or [])]
-                      print(f"  domain_groups={grps}")
-                      print(f"  user_id={u.id} user_name={u.user_name} email={email} state={u.lifecycle_state} "
-                            f"mfa_enabled_on={getattr(m, 'mfa_enabled_on', None)} "
+                      dgroups = [g.display for g in (getattr(u, "groups", None) or [])]
+                      print(f"  user_id={u.id}", flush=True)
+                      print(f"    name={u.user_name} email={email} state={u.lifecycle_state}", flush=True)
+                      print(f"    domain_groups={dgroups}", flush=True)
+                      print(f"    mfa_enabled_on={getattr(m, 'mfa_enabled_on', None)} "
                             f"factor={getattr(m, 'preferred_authentication_factor', None)} "
                             f"mfa_status={getattr(m, 'mfa_status', None)} "
                             f"bypass_codes={len(bypass)} "
-                            f"is_this_api_key_user={is_key_user}", flush=True)
+                            f"is_api_key_user={getattr(u, 'ocid', None) == key_user_ocid}", flush=True)
               except Exception as e:
                   print(f"[{d.display_name}] 读用户失败: {type(e).__name__}: {e}", flush=True)
                   traceback.print_exc()
