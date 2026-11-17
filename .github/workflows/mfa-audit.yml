@@ -91,7 +91,8 @@ jobs:
                   continue
               try:
                   idc = oci.identity_domains.IdentityDomainsClient(cfg, service_endpoint=d.url)
-                  users = oci.pagination.list_call_get_all_results(idc.list_users).data
+                  raw = oci.pagination.list_call_get_all_results(idc.list_users).data
+                  users = getattr(raw, "resources", raw)
                   print(f"[{d.display_name}] 读到了 {len(users)} 个用户 —— 这说明钥匙有域内管理权限", flush=True)
                   for u in users:
                       m = getattr(u, "urn_ietf_params_scim_schemas_oracle_idcs_extension_mfa_user", None)
@@ -99,7 +100,9 @@ jobs:
                       email = emails[0].value if emails else None
                       bypass = getattr(m, "bypass_codes", None) or []
                       is_key_user = (getattr(u, "ocid", None) == key_user_ocid)
-                      print(f"  user_name={u.user_name} email={email} state={u.lifecycle_state} "
+                      grps = [g.display for g in (getattr(u, "groups", None) or [])]
+                      print(f"  domain_groups={grps}")
+                      print(f"  user_id={u.id} user_name={u.user_name} email={email} state={u.lifecycle_state} "
                             f"mfa_enabled_on={getattr(m, 'mfa_enabled_on', None)} "
                             f"factor={getattr(m, 'preferred_authentication_factor', None)} "
                             f"mfa_status={getattr(m, 'mfa_status', None)} "
