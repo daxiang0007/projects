@@ -91,14 +91,18 @@ jobs:
 
           # ---------- status ----------
           if action == "status":
-              print("\n=== 区域公网 IP 清单 ===")
-              ips = region_ips()
-              if not ips:
-                  print("  （一个都没有 → 实例断网，Paseo 会连不上）")
-              for ip in ips:
-                  print(f"  {ip.ip_address}  {ip.lifetime}  {ip.lifecycle_state}  "
-                        f"绑定对象={ip.assigned_entity_id or '未绑定'}")
-              print(f"\n>>> 结论: {'正常' if vnic.public_ip else '缺公网 IP，需执行 attach'}")
+              print("\n=== 公网 IP 清单 ===")
+              for lt in ("RESERVED", "EPHEMERAL"):
+                  ips = oci.pagination.list_call_get_all_results(
+                      network.list_public_ips, compartment_id=tenancy,
+                      scope="REGION", lifetime=lt).data
+                  print(f"  [{lt}] {len(ips)} 个")
+                  for ip in ips:
+                      print(f"    {ip.ip_address}  {ip.lifecycle_state}  "
+                            f"绑定对象={ip.assigned_entity_id or '未绑定'}")
+              # 结论只以 VNIC 上的公网 IP 为准（EPHEMERAL 可能不在列表里）
+              ok = bool(vnic.public_ip)
+              print(f"\n>>> 结论: {'正常，公网 IP = ' + vnic.public_ip if ok else '缺公网 IP，需执行 attach'}")
               sys.exit(0)
 
           if confirm != "yes":
@@ -116,12 +120,17 @@ jobs:
 
           # ---------- rotate ----------
           if action == "rotate":
+              # 0) 找到旧公网 IP 资源（EPHEMERAL 不在 list 里，必须按地址反查）
               old_id = None
               if vnic.public_ip:
-                  old = next((i for i in region_ips()
-                              if i.ip_address == vnic.public_ip), None)
-                  old_id = old.id if old else None
                   print(f"将被替换的旧 IP: {vnic.public_ip}")
+                  try:
+                      old = network.get_public_ip_by_ip_address(
+                          oci.core.models.GetPublicIpByIpAddressDetails(
+                              ip_address=vnic.public_ip)).data
+                      old_id = old.id
+                  except Exception as e:
+                      sys.exit(f"查不到旧 IP 资源（{e}），为安全起见中止，未做任何改动")
 
               # 1) 先把新 IP 预留下来（这步失败则什么都没动）
               print("步骤1: 预留新 IP ...")
