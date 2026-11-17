@@ -105,8 +105,8 @@ jobs:
               print(f"\n>>> 结论: {'正常，公网 IP = ' + vnic.public_ip if ok else '缺公网 IP，需执行 attach'}")
               sys.exit(0)
 
-          if confirm != "yes":
-              sys.exit("attach / rotate 需要 confirm=yes")
+          if confirm not in ("yes", "dry"):
+              sys.exit("attach / rotate 需要 confirm=yes（干跑用 confirm=dry）")
 
           # ---------- attach ----------
           if action == "attach":
@@ -131,6 +131,12 @@ jobs:
                       old_id = old.id
                   except Exception as e:
                       sys.exit(f"查不到旧 IP 资源（{e}），为安全起见中止，未做任何改动")
+                  print(f"  已定位旧 IP 资源 id={old_id[:24]}...  lifetime={old.lifetime}")
+
+              if confirm == "dry":
+                  print("\n>>> 干跑通过：旧 IP 定位正常，磁盘与网络均未改动")
+                  print("    真正换 IP 用 confirm=yes（会立刻更换地址，记得同步改客户端）")
+                  sys.exit(0)
 
               # 1) 先把新 IP 预留下来（这步失败则什么都没动）
               print("步骤1: 预留新 IP ...")
