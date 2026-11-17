@@ -1,0 +1,164 @@
+name: a1-ops
+
+# A1 带外运维工具箱 —— 控制台进不去时的唯一通道
+# 用法：Actions → a1-ops → Run workflow → 选 action
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "操作类型"
+        required: true
+        default: status
+        type: choice
+        options:
+          - status   # 只看状态，不动任何东西
+          - attach   # 没有公网 IP 时挂一个
+          - rotate   # 换 IP（先预留新的，再拆旧的）
+      confirm:
+        description: "执行 attach / rotate 必须输入 yes"
+        required: false
+        default: "no"
+
+permissions:
+  contents: read
+
+jobs:
+  ops:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q oci cryptography
+      - name: 执行
+        env:
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_REGION: us-sanjose-1
+          INSTANCE_NAME: a1-free
+          ACTION: ${{ inputs.action }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          python -u - <<'PY'
+          import os, sys, hashlib, oci
+          from cryptography.hazmat.primitives import serialization
+
+          key = os.environ["OCI_PRIVATE_KEY"]
+          priv = serialization.load_pem_private_key(key.encode(), password=None)
+          der = priv.public_key().public_bytes(
+              serialization.Encoding.DER,
+              serialization.PublicFormat.SubjectPublicKeyInfo)
+          fp = ":".join(f"{b:02x}" for b in hashlib.md5(der).digest())
+
+          cfg = {
+              "user": os.environ["OCI_USER_OCID"].strip(),
+              "fingerprint": fp,
+              "tenancy": os.environ["OCI_TENANCY_OCID"].strip(),
+              "region": os.environ.get("OCI_REGION", "us-sanjose-1").strip(),
+              "key_content": key,
+          }
+          tenancy, action = cfg["tenancy"], os.environ["ACTION"]
+          confirm = (os.environ.get("CONFIRM") or "").strip().lower()
+          name = os.environ.get("INSTANCE_NAME", "a1-free")
+          compute = oci.core.ComputeClient(cfg)
+          network = oci.core.VirtualNetworkClient(cfg)
+
+          # ---------- 定位实例与主 VNIC ----------
+          insts = oci.pagination.list_call_get_all_results(
+              compute.list_instances, compartment_id=tenancy).data
+          inst = next((i for i in insts if i.display_name == name), None)
+          if inst is None:
+              sys.exit(f"找不到实例 {name}")
+          print(f"实例: {inst.display_name} / {inst.lifecycle_state} / {inst.shape}")
+
+          atts = oci.pagination.list_call_get_all_results(
+              compute.list_vnic_attachments,
+              compartment_id=tenancy, instance_id=inst.id).data
+          if not atts:
+              sys.exit("实例没有 VNIC，网络层已损坏，需要重建")
+          vnic = network.get_vnic(atts[0].vnic_id).data
+          pips = network.list_private_ips(vnic_id=vnic.id).data
+          primary = next((p for p in pips if p.is_primary), pips[0])
+          print(f"VNIC 私网IP={vnic.private_ip}  公网IP={vnic.public_ip or '无'}")
+
+          def region_ips():
+              return oci.pagination.list_call_get_all_results(
+                  network.list_public_ips, compartment_id=tenancy,
+                  scope="REGION").data
+
+          # ---------- status ----------
+          if action == "status":
+              print("\n=== 区域公网 IP 清单 ===")
+              ips = region_ips()
+              if not ips:
+                  print("  （一个都没有 → 实例断网，Paseo 会连不上）")
+              for ip in ips:
+                  print(f"  {ip.ip_address}  {ip.lifetime}  {ip.lifecycle_state}  "
+                        f"绑定对象={ip.assigned_entity_id or '未绑定'}")
+              print(f"\n>>> 结论: {'正常' if vnic.public_ip else '缺公网 IP，需执行 attach'}")
+              sys.exit(0)
+
+          if confirm != "yes":
+              sys.exit("attach / rotate 需要 confirm=yes")
+
+          # ---------- attach ----------
+          if action == "attach":
+              if vnic.public_ip:
+                  print(f"已有公网 IP: {vnic.public_ip}，无需操作")
+                  sys.exit(0)
+              res = network.create_public_ip(oci.core.models.CreatePublicIpDetails(
+                  compartment_id=tenancy, lifetime="RESERVED", private_ip_id=primary.id))
+              print(f"\n>>> 已挂上公网 IP: {res.data.ip_address}（RESERVED，重建实例后可重绑）")
+              sys.exit(0)
+
+          # ---------- rotate ----------
+          if action == "rotate":
+              old_id = None
+              if vnic.public_ip:
+                  old = next((i for i in region_ips()
+                              if i.ip_address == vnic.public_ip), None)
+                  old_id = old.id if old else None
+                  print(f"将被替换的旧 IP: {vnic.public_ip}")
+
+              # 1) 先把新 IP 预留下来（这步失败则什么都没动）
+              print("步骤1: 预留新 IP ...")
+              try:
+                  new = network.create_public_ip(oci.core.models.CreatePublicIpDetails(
+                      compartment_id=tenancy, lifetime="RESERVED")).data
+              except Exception as e:
+                  sys.exit(f"预留失败，未做任何改动: {e}")
+              print(f"  新 IP 已预留: {new.ip_address}")
+
+              # 2) 解绑旧 IP（保留资源，不删除，便于回滚）
+              if old_id:
+                  print("步骤2: 解绑旧 IP ...")
+                  try:
+                      network.update_public_ip(old_id,
+                          oci.core.models.UpdatePublicIpDetails(private_ip_id=None))
+                  except Exception as e:
+                      print(f"  解绑失败，回滚中: {e}")
+                      network.delete_public_ip(new.id)
+                      sys.exit("已回滚，旧 IP 仍在原位")
+
+              # 3) 绑定新 IP
+              print("步骤3: 绑定新 IP ...")
+              try:
+                  network.update_public_ip(new.id,
+                      oci.core.models.UpdatePublicIpDetails(private_ip_id=primary.id))
+                  print(f"\n>>> 换 IP 成功: {new.ip_address}")
+                  if old_id:
+                      network.delete_public_ip(old_id)
+                      print("    旧 IP 已释放")
+                  print("\n>>> 别忘了改 v2rayN 节点地址")
+              except Exception as e:
+                  print(f"  绑定失败，回滚旧 IP: {e}")
+                  if old_id:
+                      network.update_public_ip(old_id,
+                          oci.core.models.UpdatePublicIpDetails(private_ip_id=primary.id))
+                      print("  已回滚到旧 IP")
+                  network.delete_public_ip(new.id)
+                  sys.exit("换 IP 失败，已回滚")
+          PY
