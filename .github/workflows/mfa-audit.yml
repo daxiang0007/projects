@@ -97,7 +97,7 @@ jobs:
                       bypass = getattr(m, "bypass_codes", None) or []
                       dgroups = [g.display for g in (getattr(u, "groups", None) or [])]
                       print(f"  user_id={u.id}", flush=True)
-                      print(f"    name={u.user_name} email={email} state={u.lifecycle_state}", flush=True)
+                      print(f"    name={u.user_name} email={email} active={getattr(u, "active", None)}", flush=True)
                       print(f"    domain_groups={dgroups}", flush=True)
                       print(f"    mfa_enabled_on={getattr(m, 'mfa_enabled_on', None)} "
                             f"factor={getattr(m, 'preferred_authentication_factor', None)} "
