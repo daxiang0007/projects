@@ -1,0 +1,28 @@
+name: fp-check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q cryptography
+      - name: 计算指纹
+        env:
+          KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+        run: |
+          python -u - <<'PY'
+          import os, hashlib
+          from cryptography.hazmat.primitives import serialization
+          priv = serialization.load_pem_private_key(os.environ["KEY"].encode(), password=None)
+          der = priv.public_key().public_bytes(
+              serialization.Encoding.DER,
+              serialization.PublicFormat.SubjectPublicKeyInfo)
+          fp = ":".join(f"{b:02x}" for b in hashlib.md5(der).digest())
+          print(f"FINGERPRINT={fp}")
+          PY
